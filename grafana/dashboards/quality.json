@@ -1,0 +1,64 @@
+{
+  "uid": "optics-quality",
+  "title": "Optics Fabrication Quality",
+  "schemaVersion": 41,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Latest device status by material lot",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ledger-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "ledger-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT material_lot, COUNT(*) FILTER (WHERE status='pass') AS pass, COUNT(*) FILTER (WHERE status='fail') AS fail, COUNT(*) FILTER (WHERE status='unmeasured') AS unmeasured FROM device_quality GROUP BY material_lot ORDER BY material_lot LIMIT 100"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Devices needing metrology review",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ledger-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "ledger-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT serial, run_code, substrate_code, material_lot, status, value_nm, spec_max_nm FROM device_quality WHERE status IN ('fail','unmeasured') ORDER BY printed_at DESC, serial LIMIT 100"
+        }
+      ]
+    }
+  ]
+}

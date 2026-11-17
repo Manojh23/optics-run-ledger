@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ledger
+      POSTGRES_PASSWORD: ledger
+      POSTGRES_DB: ledger
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledger -d ledger"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ledger-data:/var/lib/postgresql/data
+      - ./grafana/init-reader.sql:/docker-entrypoint-initdb.d/01-reader.sql:ro
+  migrate:
+    build: .
+    image: optics-run-ledger:local
+    environment:
+      DATABASE_URL: postgresql+psycopg://ledger:ledger@db:5432/ledger
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+  api:
+    image: optics-run-ledger:local
+    environment:
+      DATABASE_URL: postgresql+psycopg://ledger:ledger@db:5432/ledger
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+  grafana:
+    image: grafana/grafana:12.3.0
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+volumes:
+  ledger-data:

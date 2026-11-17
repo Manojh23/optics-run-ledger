@@ -1,0 +1,15 @@
+apiVersion: 1
+datasources:
+  - name: Optics Ledger
+    uid: ledger-postgres
+    type: postgres
+    url: db:5432
+    user: ledger_dashboard
+    secureJsonData:
+      password: ledger-dashboard-local
+    jsonData:
+      database: ledger
+      sslmode: disable
+      postgresVersion: 1700
+      maxOpenConns: 5
+      maxIdleConns: 2
